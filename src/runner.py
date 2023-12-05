@@ -2,6 +2,8 @@ import json
 import requests
 from googleapiclient.discovery import build
 
+from src.helper_functions import fetch_video_info
+
 with open("../data/personal.json") as file:
     personal_data = json.load(file)
 
@@ -14,6 +16,7 @@ with open("../data/westmont.json") as file:
 count = 0
 erased_count = 0
 title_array = []
+data = []
 
 for record in personal_data:
     title = record["title"]
@@ -22,6 +25,7 @@ for record in personal_data:
     else:
         title_array.append(title)
         count += 1
+        data.append(record)
 
 for record in throw_data:
     title = record["title"]
@@ -30,6 +34,7 @@ for record in throw_data:
     else:
         title_array.append(title)
         count += 1
+        data.append(record)
 
 for record in westmont_data:
     title = record["title"]
@@ -38,37 +43,28 @@ for record in westmont_data:
     else:
         title_array.append(title)
         count += 1
+        data.append(record)
 
-#print(title_array)
-print(f"You have records on a total of {count} videos watched.")
-print(f"{erased_count} videos were erased or removed! That is {erased_count / (erased_count + count) * 100}%")
+with open("../data/data.json", "w") as file:
+    json.dump(data, file, indent=2)
 
-# Set your API key
+print(f"{data}")
+# print(f"You have records on a total of {count} videos watched.")
+# print(f"{erased_count} videos were erased or removed! That is {erased_count / (erased_count + count) * 100}%")
+
+
 api_key = 'AIzaSyAtB7cu0ikP0LwA27o6JTlffkzLdQWDuDo'
 
-# Replace this with the YouTube video URL you want to get data for
-video_url = 'https://www.youtube.com/watch?v=FfMeHzVtnfs'
+# Replace 'path/to/your/json/file.json' with the actual path to your JSON file
+json_file_path = '../data/personal.json'
 
-# Extract video ID from the URL
-video_id = video_url.split('v=')[1]
+# Fetch video information and store the documents in a list
+all_docs = fetch_video_info(api_key, json_file_path)
 
-# Initialize the YouTube Data API
-youtube = build('youtube', 'v3', developerKey=api_key)
+with open("../data/final_data.json", "w") as file:
+    json.dump(all_docs, file, indent=2)
 
-# Request video details
-video_request = youtube.videos().list(part='snippet,contentDetails,statistics', id=video_id)
-video_response = video_request.execute()
-
-# Extract relevant information
-video_details = video_response['items'][0]
-title = video_details['snippet']['title']
-description = video_details['snippet']['description']
-views = video_details['statistics']['viewCount']
-likes = video_details['statistics']['likeCount']
-#dislikes = video_details['statistics']['dislikeCount']
-
-# Print the information
-print(f'Title: {title}')
-print(f'Views: {views}')
-print(f'Likes: {likes}')
-#print(f'Dislikes: {dislikes}')
+# Print or process the list of documents as needed
+for video_doc in all_docs:
+    print(json.dumps(video_doc, indent=2))
+    print('-' * 50)
