@@ -1,6 +1,11 @@
 import json
 from googleapiclient.discovery import build
 
+__author__ = "Nathan Kirk"
+__credits__ = ["Nathan Kirk"]
+__license__ = "GPL-3.0 license"
+__email__ = "nkirk@westmont.edu"
+
 
 def fetch_video_info(api_key, json_file_path):
     # Initialize the YouTube Data API
@@ -12,7 +17,7 @@ def fetch_video_info(api_key, json_file_path):
 
     # Initialize a list to store video documents
     all_video_docs = []
-
+    count = 0
     # Iterate through videos in the JSON file
     for video_info in data:
         # Extract video ID from titleUrl
@@ -46,6 +51,9 @@ def fetch_video_info(api_key, json_file_path):
 
             # Add the document to the list
             all_video_docs.append(video_doc)
+            count += 1
+            if count % 1000 == 0:
+                print(f'Processed {count} documents!')
 
     # Return the list of all video documents
     return all_video_docs
