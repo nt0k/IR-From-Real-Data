@@ -54,6 +54,8 @@ def fetch_video_info(api_key, json_file_path):
             count += 1
             if count % 1000 == 0:
                 print(f'Processed {count} documents!')
+            if count > 9000:
+                return all_video_docs
 
     # Return the list of all video documents
     return all_video_docs
