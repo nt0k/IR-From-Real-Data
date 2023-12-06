@@ -26,9 +26,12 @@ class Document:
     ],
     "publication_date": "2023-07-24T20:54:40Z"
   }"""
+    _iid = 0
 
-    def __init__(self, content: dict):
-        self._title = content["title"]
+    def __init__(self, title: str = None, content: dict = None):
+        Document._iid += 1
+        self._iid = Document._iid
+        self._title = title if title else content["title"]
         self._description = content["description"]
         self._channel = content["channel"]
         self._tags = content["tags"]
@@ -41,6 +44,10 @@ class Document:
     @property
     def title(self):
         return self._title
+
+    @property
+    def iid(self):
+        return self._iid
 
     def tf(self, term: str) -> int:
         """Compute and return the term frequency of the `term` passed in among `_words`."""
