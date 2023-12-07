@@ -3,10 +3,9 @@ import json
 import pickle
 import time
 import sys
-from src.models import Corpus, Document
-
-
-from src.helper_functions import fetch_video_info
+from models import Corpus, Document
+from pyspark.sql import SparkSession
+from pyspark.sql.utils import AnalysisException
 
 __author__ = "Nathan Kirk"
 __credits__ = ["Nathan Kirk"]
@@ -18,24 +17,22 @@ def main() -> None:
     pars = setup_argument_parser()
     args = pars.parse_args()
     timer = Timer()
-
-    #document_processors = (set(stopwords.words('english')), SnowballStemmer('english'))
+    spark = SparkSession.builder.getOrCreate()
 
     try:
-        with open(args.pickle_file_path, "rb") as pickle_file:
-            corpus = timer.run_with_timer(pickle.load, [pickle_file],
+        parquet = spark.read.parquet(args.pickle_file_path)
+        corpus = timer.run_with_timer(parquet.load, [parquet],
                                           label="corpus load from pickle")
-    except FileNotFoundError:
-        with open("../data/final_data.json", "r") as file:
-            final_data = json.load(file)
-            corpus_documents = []
-            for video in final_data:
-                videoDict = Document(None, video)
-                corpus_documents.append(videoDict)
+    except AnalysisException:
+        json_data = spark.read.json(args.data_file_path)
+        final_data = json.load(json_data)
+        corpus_documents = []
+        for video in final_data:
+            videoDict = Document(None, video)
+            corpus_documents.append(videoDict)
         corpus = timer.run_with_timer(Corpus, [corpus_documents, args.num_threads, args.debug],
                                       label="corpus instantiation (includes TF-IDF matrix)")
-        with open(args.pickle_file_path, "wb") as pickle_file:
-            pickle.dump(corpus, pickle_file)
+        corpus.write.parquet(args.pickle_file_path, mode="overwrite")
 
     keep_querying(corpus, 10)
 
@@ -46,6 +43,8 @@ def setup_argument_parser() -> argparse.ArgumentParser:
                       help="required integer indicating how many threads to utilize")
     pars.add_argument("pickle_file_path", type=str,
                       help="required string containing the path to a pickle (data) file")
+    pars.add_argument("data_file_path", type=str,
+                      help="required string containing the path to a json data file")
     pars.add_argument("-d", "--debug", action="store_true",
                       help="flag to enable printing debug statements to console output")
     return pars
@@ -56,7 +55,7 @@ def keep_querying(corpus: Corpus, num_results: int) -> None:
 
     while again_response == 'y':
         raw_query = input("Your query? ")
-        #query_document = Document("query", raw_query.split())
+        # query_document = Document("query", raw_query.split())
         query_document = Document("query", {"title": "", "description": "", "channel": "", "tags": [raw_query]})
         query_vector = corpus.compute_tf_idf_vector(query_document)
 
