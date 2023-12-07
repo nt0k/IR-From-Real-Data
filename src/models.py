@@ -7,7 +7,6 @@ from math import sqrt, log10
 import sys
 from typing import Callable, Iterable
 import concurrent.futures
-from nltk.stem import StemmerI
 
 
 class Document:
@@ -55,9 +54,10 @@ class Document:
 
 
 class Vector:
-    """Takes in a list of floats as a representation of a document as a vector in space"""
+    """Takes in a list of floats as a representation of a document as a vector in space
+    elements: list[float]"""
 
-    def __init__(self, elements: list[float] | None = None):
+    def __init__(self, elements):
         self._vec = elements if elements else []
 
     def __getitem__(self, index: int) -> float:
@@ -120,8 +120,9 @@ class Vector:
             else:
                 return 0.0
 
-    def boolean_intersect(self, other: object) -> list[tuple[float, float]]:
-        """Returns a list of tuples of elements where both `self` and `other` had nonzero values."""
+    def boolean_intersect(self, other: object) -> list:
+        """Returns a list of tuples of elements where both `self` and `other` had nonzero values.
+        list[tuple[float, float]"""
         if not isinstance(other, Vector):
             raise ValueError(self._get_cannot_compute_msg("boolean intersection", other))
         else:
@@ -129,9 +130,10 @@ class Vector:
 
 
 class Corpus:
-    """A corpus is a list of documents. This class does the TF-IDF calculations and makes the matrix of vector values"""
+    """A corpus is a list of documents. This class does the TF-IDF calculations and makes the matrix of vector values
+     documents: list[Document]"""
 
-    def __init__(self, documents: list[Document], threads=1, debug=False):
+    def __init__(self, documents, threads=1, debug=False):
         self._docs: list[Document] = documents
 
         # Setting flags.
@@ -171,7 +173,7 @@ class Corpus:
     def tf_idf(self):
         return self._tf_idf
 
-    def _compute_terms(self) -> dict[str, int]:
+    def _compute_terms(self) -> dict:
         """Computes and returns the terms (unique, stemmed, and filtered words) of the corpus."""
         list1 = []
         for doc in self._docs:
@@ -192,7 +194,7 @@ class Corpus:
 
         return sum([1 if check_membership(term, doc) else 0 for doc in self._docs])
 
-    def _compute_dfs(self) -> dict[str, int]:
+    def _compute_dfs(self) -> dict:
         """Computes document frequencies for each term in this corpus and returns a dictionary of {term: df}s."""
         if self._threads > 1:
             return Corpus._compute_dict_multithread(self._threads, self._compute_df, self._terms.keys())
@@ -227,9 +229,9 @@ class Corpus:
             floats.append(self._compute_tf_idf(term, doc))
         return Vector(floats)
 
-    def _compute_tf_idf_matrix(self) -> dict[str, Vector]:
+    def _compute_tf_idf_matrix(self) -> dict:
         """Computes and returns the TF-IDF matrix for the whole corpus.
-
+        dict[str, Vector]
         The TF-IDF matrix is a dictionary of {document title: TF-IDF vector for the document}.
 
         """
