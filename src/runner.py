@@ -18,6 +18,8 @@ def main() -> None:
     args = pars.parse_args()
     timer = Timer()
     spark = SparkSession.builder.getOrCreate()
+    # TODO make a separate all contained PY file that makes the needed pickle file for the query
+    # the rest must occur locally
 
     try:
         parquet = spark.read.parquet(args.pickle_file_path)
@@ -25,13 +27,17 @@ def main() -> None:
                                           label="corpus load from pickle")
     except AnalysisException:
         json_data = spark.read.json(args.data_file_path)
-        final_data = json.load(json_data)
         corpus_documents = []
-        for video in final_data:
-            videoDict = Document(None, video)
+        for row in json_data.collect():
+            videoDict = Document(None, row.asDict())
             corpus_documents.append(videoDict)
-        corpus = timer.run_with_timer(Corpus, [corpus_documents, args.num_threads, args.debug],
-                                      label="corpus instantiation (includes TF-IDF matrix)")
+
+        # Now you have a list of Document objects, and you can proceed with the rest of your code
+        corpus = timer.run_with_timer(
+            Corpus, [corpus_documents, args.num_threads, args.debug],
+            label="corpus instantiation (includes TF-IDF matrix)"
+        )
+
         corpus.write.parquet(args.pickle_file_path, mode="overwrite")
 
     keep_querying(corpus, 10)

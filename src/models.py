@@ -252,7 +252,7 @@ class Corpus:
                 matrix[doc.title] = tf_idf(doc)
 
                 if self._debug:
-                    print(f"Done with doc {doc.title}")
+                    print(f"Done with doc {doc.iid}")
         return matrix
 
     def _get_doc(self, document, index):
