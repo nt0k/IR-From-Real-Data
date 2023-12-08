@@ -3,6 +3,7 @@ import time
 from pyspark.sql import SparkSession
 import pickle
 import sys
+import gcsfs
 
 
 class Timer:
@@ -54,6 +55,8 @@ corpus = timer.run_with_timer(
 )
 
 # Save the corpus to a pickle file
-with open("gs://dataproc-staging-us-west1-1054165745548-ex76tnob/IR-From-Real-Data/data/my_corpus", 'wb') as file:
-    # Serialize and write an object (e.g., a Python dictionary) to the file
+fs = gcsfs.GCSFileSystem()
+
+with fs.open("gs://dataproc-staging-us-west1-1054165745548-ex76tnob/IR-From-Real-Data/data/my_corpus.pkl", 'wb') as file:
+    #write the corpus to the file
     pickle.dump(corpus, file)

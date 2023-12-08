@@ -3,6 +3,9 @@ import json
 import pickle
 import time
 import sys
+
+import gcsfs
+
 from models import Corpus, Document
 from pyspark.sql import SparkSession
 from pyspark.sql.utils import AnalysisException
@@ -14,31 +17,12 @@ __email__ = "nkirk@westmont.edu"
 
 
 def main() -> None:
-    pars = setup_argument_parser()
-    args = pars.parse_args()
     timer = Timer()
-    spark = SparkSession.builder.getOrCreate()
-    # TODO make a separate all contained PY file that makes the needed pickle file for the query
-    # the rest must occur locally
+    fs = gcsfs.GCSFileSystem()
 
-    try:
-        parquet = spark.read.parquet(args.pickle_file_path)
-        corpus = timer.run_with_timer(parquet.load, [parquet],
-                                          label="corpus load from pickle")
-    except AnalysisException:
-        json_data = spark.read.json(args.data_file_path)
-        corpus_documents = []
-        for row in json_data.collect():
-            videoDict = Document(None, row.asDict())
-            corpus_documents.append(videoDict)
-
-        # Now you have a list of Document objects, and you can proceed with the rest of your code
-        corpus = timer.run_with_timer(
-            Corpus, [corpus_documents, args.num_threads, args.debug],
-            label="corpus instantiation (includes TF-IDF matrix)"
-        )
-
-        corpus.write.parquet(args.pickle_file_path, mode="overwrite")
+    with fs.open("gs://dataproc-staging-us-west1-1054165745548-ex76tnob/IR-From-Real-Data/data/my_corpus.pkl",
+                 'rb') as file:
+        corpus = timer.run_with_timer(pickle.load, [file], label="corpus load from pickle")
 
     keep_querying(corpus, 10)
 
