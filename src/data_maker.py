@@ -7,13 +7,13 @@ __license__ = "GPL-3.0 license"
 __email__ = "nkirk@westmont.edu"
 
 
-with open("../data/data.json", 'r') as file:
+with open("../data/combined_raw.json", 'r') as file:
     total_data = json.load(file)
 
 api_key = 'AIzaSyAtB7cu0ikP0LwA27o6JTlffkzLdQWDuDo'
 
 # Replace 'path/to/your/json/file.json' with the actual path to your JSON file
-json_file_path = '../data/data.json'
+json_file_path = '../data/combined_raw.json'
 
 # Fetch video information and store the documents in a list
 all_docs = fetch_video_info(api_key, json_file_path)

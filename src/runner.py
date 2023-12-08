@@ -19,8 +19,6 @@ def main() -> None:
     args = pars.parse_args()
     timer = Timer()
 
-    #document_processors = (set(stopwords.words('english')), SnowballStemmer('english'))
-
     try:
         with open(args.pickle_file_path, "rb") as pickle_file:
             corpus = timer.run_with_timer(pickle.load, [pickle_file],
@@ -56,7 +54,7 @@ def keep_querying(corpus: Corpus, num_results: int) -> None:
 
     while again_response == 'y':
         raw_query = input("Your query? ")
-        #query_document = Document("query", raw_query.split())
+        # puts the users query in the tags part of the doc
         query_document = Document("query", {"title": "", "description": "", "channel": "", "tags": [raw_query]})
         query_vector = corpus.compute_tf_idf_vector(query_document)
 
