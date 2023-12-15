@@ -29,3 +29,5 @@ channel name and tags given a youtube url"
 
 I heavily utilized google's documentation to understand how to use Pyspark, Dataproc, and Bucket.
 Data was collected through Google's Takeout, and added to with the Youtube API.
+
+Prototype.py is from Professor Mike Ryu at Westmont College.
